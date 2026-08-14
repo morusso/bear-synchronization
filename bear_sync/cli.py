@@ -9,7 +9,7 @@ from .commands import cmd_status, cmd_sync
 from .constants import ENV_PREFIX, PROG_NAME, VERSION
 from .formatting import ColorHelpFormatter
 from .logging_setup import configure_logging
-from .validators import existing_path, positive_int
+from .validators import bear2bk_archive, existing_bear2bk_archive, existing_path, positive_int
 
 
 class BearSyncCLI:
@@ -84,9 +84,15 @@ class BearSyncCLI:
         return parser
 
     def _add_sync_subcommand(self, subparsers) -> None:
-        sync = subparsers.add_parser("sync", help="synchronize notes")
-        sync.add_argument("--source", type=existing_path, required=True, help="source directory")
-        sync.add_argument("--dest", type=Path, required=True, help="destination directory")
+        sync = subparsers.add_parser("sync", help="synchronize notes between two .bear2bk backups")
+        sync.add_argument(
+            "--source", type=existing_bear2bk_archive, required=True,
+            help="source .bear2bk archive",
+        )
+        sync.add_argument(
+            "--dest", type=bear2bk_archive, required=True,
+            help="destination .bear2bk archive",
+        )
         sync.add_argument(
             "--workers", type=positive_int,
             default=int(self._env_default("WORKERS", "4")),

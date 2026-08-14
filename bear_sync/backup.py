@@ -3,11 +3,13 @@ from __future__ import annotations
 import zipfile
 from pathlib import Path
 
+from .constants import BEAR_ARCHIVE_SUFFIX
+
 
 class BearBackupArchive:
     """A Bear notes ``.bear2bk`` backup, which is a zip archive under the hood."""
 
-    ARCHIVE_SUFFIX = ".bear2bk"
+    ARCHIVE_SUFFIX = BEAR_ARCHIVE_SUFFIX
 
     def __init__(self, archive_path: Path) -> None:
         self.archive_path = archive_path
