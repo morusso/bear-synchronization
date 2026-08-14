@@ -15,6 +15,19 @@ logger = logging.getLogger(PROG_NAME)
 
 
 def cmd_sync(args: argparse.Namespace) -> int:
+    """Synchronizes notes between two ``.bear2bk`` archives.
+
+    Extracts both archives to temporary directories, compares their note
+    titles, fills notes missing on either side into the other, and repacks
+    any archive that was modified (backing it up first).
+
+    Args:
+        args: Parsed CLI namespace with ``source``, ``dest``, ``workers``,
+            ``dry_run``, ``include``, and ``show_diff`` attributes.
+
+    Returns:
+        ``0`` on success, regardless of whether any notes were copied.
+    """
     payload = SyncArgs(
         args.source, args.dest, args.workers, args.dry_run, args.include, args.show_diff,
     )
@@ -68,6 +81,11 @@ def cmd_sync(args: argparse.Namespace) -> int:
 
 
 def _print_diff(comparison: ArchiveComparison) -> None:
+    """Prints the titles of notes unique to the source and destination archives.
+
+    Args:
+        comparison: Result of comparing the two archives' note titles.
+    """
     print(f"Only in source ({len(comparison.only_in_source)}):")
     for title in sorted(comparison.only_in_source):
         print(f"  - {title}")
@@ -78,6 +96,15 @@ def _print_diff(comparison: ArchiveComparison) -> None:
 
 
 def cmd_status(args: argparse.Namespace) -> int:
+    """Prints the current sync status.
+
+    Args:
+        args: Parsed CLI namespace with a ``format`` attribute (``"text"``
+            or ``"json"``).
+
+    Returns:
+        ``0`` on success.
+    """
     if args.format == "json":
         print('{"status": "idle"}')
     else:

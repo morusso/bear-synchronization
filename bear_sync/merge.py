@@ -13,12 +13,29 @@ logger = logging.getLogger(PROG_NAME)
 
 
 def _matching(titles: set[str], include: list[str]) -> set[str]:
+    """Filters titles down to those matching at least one include pattern.
+
+    Args:
+        titles: Candidate note titles.
+        include: Glob-style patterns (per ``fnmatch``) to match against. If
+            empty, all titles are kept.
+
+    Returns:
+        The subset of ``titles`` matching ``include``, or all of ``titles``
+        if ``include`` is empty.
+    """
     if not include:
         return set(titles)
     return {title for title in titles if any(fnmatch.fnmatch(title, pattern) for pattern in include)}
 
 
 def _copy_note(note_path: Path, destination_root: Path) -> None:
+    """Copies a single note (file or textbundle directory) into a destination.
+
+    Args:
+        note_path: Path to the note file or textbundle directory to copy.
+        destination_root: Directory the note is copied into.
+    """
     target = destination_root / note_path.name
     if note_path.is_dir():
         shutil.copytree(note_path, target)
@@ -34,10 +51,21 @@ def fill_missing_notes(
     include: list[str] | None = None,
     dry_run: bool = False,
 ) -> MergeResult:
-    """Copy notes missing on one side into the other extracted archive tree.
+    """Copies notes missing on one side into the other extracted archive tree.
 
-    Returns the titles actually selected for copying (after ``include``
-    filtering); with ``dry_run`` the trees are left untouched.
+    Args:
+        source_root: Root of the extracted source archive.
+        dest_root: Root of the extracted destination archive.
+        comparison: Result of comparing the two archives' note titles.
+        include: Glob-style patterns restricting which notes are copied. If
+            empty or ``None``, all missing notes are copied.
+        dry_run: If ``True``, only determine which notes would be copied
+            without touching disk.
+
+    Returns:
+        A ``MergeResult`` with the titles actually selected for copying
+        (after ``include`` filtering); with ``dry_run`` the trees are left
+        untouched.
     """
     include = include or []
     source_notes = list_notes(source_root)

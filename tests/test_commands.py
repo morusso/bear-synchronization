@@ -8,6 +8,19 @@ from bear_sync.commands import cmd_status, cmd_sync
 
 
 def _namespace(source, dest, workers=4, dry_run=False, include=None, show_diff=False):
+    """Builds an ``argparse.Namespace`` matching the ``sync`` subcommand's arguments.
+
+    Args:
+        source: Path to the source archive.
+        dest: Path to the destination archive.
+        workers: Number of worker threads.
+        dry_run: Whether to simulate the sync without touching disk.
+        include: Glob-style patterns restricting which notes are synced.
+        show_diff: Whether to print differing note titles.
+
+    Returns:
+        A namespace suitable for passing to ``cmd_sync``.
+    """
     return argparse.Namespace(
         source=source, dest=dest, workers=workers, dry_run=dry_run,
         include=include or [], show_diff=show_diff,
@@ -15,6 +28,7 @@ def _namespace(source, dest, workers=4, dry_run=False, include=None, show_diff=F
 
 
 def test_cmd_sync_logs_note_comparison(make_archive, caplog):
+    """``cmd_sync`` logs the counts of common and unique notes."""
     source = make_archive("source", {"Shared.md": "a", "OnlySource.md": "b"})
     dest = make_archive("dest", {"Shared.md": "a", "OnlyDest.md": "c"})
 
@@ -29,6 +43,7 @@ def test_cmd_sync_logs_note_comparison(make_archive, caplog):
 
 
 def test_cmd_sync_show_diff_prints_differing_titles(make_archive, capsys):
+    """``cmd_sync`` with ``show_diff=True`` prints only the differing note titles."""
     source = make_archive("source", {"Shared.md": "a", "OnlySource.md": "b"})
     dest = make_archive("dest", {"Shared.md": "a", "OnlyDest.md": "c"})
 
@@ -44,6 +59,7 @@ def test_cmd_sync_show_diff_prints_differing_titles(make_archive, capsys):
 
 
 def test_cmd_sync_without_show_diff_prints_nothing(make_archive, capsys):
+    """``cmd_sync`` with ``show_diff=False`` prints nothing to stdout."""
     source = make_archive("source", {"Shared.md": "a", "OnlySource.md": "b"})
     dest = make_archive("dest", {"Shared.md": "a", "OnlyDest.md": "c"})
 
@@ -53,6 +69,7 @@ def test_cmd_sync_without_show_diff_prints_nothing(make_archive, capsys):
 
 
 def test_cmd_sync_fills_missing_notes_into_both_archives(tmp_path, make_archive):
+    """``cmd_sync`` copies notes missing on either side into the other archive."""
     source = make_archive("source", {"Shared.md": "a", "OnlySource.md": "b"})
     dest = make_archive("dest", {"Shared.md": "a", "OnlyDest.md": "c"})
 
@@ -68,6 +85,7 @@ def test_cmd_sync_fills_missing_notes_into_both_archives(tmp_path, make_archive)
 
 
 def test_cmd_sync_creates_bak_files_before_overwriting(tmp_path, make_archive):
+    """``cmd_sync`` creates ``.bak`` backups of both archives before repacking them."""
     source = make_archive("source", {"OnlySource.md": "b"})
     dest = make_archive("dest", {"OnlyDest.md": "c"})
 
@@ -78,6 +96,7 @@ def test_cmd_sync_creates_bak_files_before_overwriting(tmp_path, make_archive):
 
 
 def test_cmd_sync_dry_run_does_not_modify_archives(tmp_path, make_archive):
+    """``cmd_sync`` with ``dry_run=True`` leaves both archives byte-for-byte unchanged."""
     source = make_archive("source", {"OnlySource.md": "b"})
     dest = make_archive("dest", {"OnlyDest.md": "c"})
     source_bytes_before = source.read_bytes()
@@ -93,6 +112,7 @@ def test_cmd_sync_dry_run_does_not_modify_archives(tmp_path, make_archive):
 
 
 def test_cmd_sync_include_filter_limits_which_notes_are_filled(tmp_path, make_archive):
+    """``cmd_sync`` with an ``include`` pattern only copies matching notes."""
     source = make_archive("source", {"Keep This.md": "a", "Skip This.md": "b"})
     dest = make_archive("dest", {})
 
@@ -103,6 +123,7 @@ def test_cmd_sync_include_filter_limits_which_notes_are_filled(tmp_path, make_ar
 
 
 def test_cmd_sync_already_in_sync_does_not_touch_archives(make_archive):
+    """``cmd_sync`` on already-matching archives leaves both files unchanged."""
     source = make_archive("source", {"Shared.md": "a"})
     dest = make_archive("dest", {"Shared.md": "a"})
     source_bytes_before = source.read_bytes()
@@ -118,6 +139,7 @@ def test_cmd_sync_already_in_sync_does_not_touch_archives(make_archive):
 
 
 def test_cmd_status_text_format(capsys):
+    """``cmd_status`` with the default text format prints ``status: idle``."""
     exit_code = cmd_status(argparse.Namespace(format="text"))
 
     assert exit_code == 0
@@ -125,6 +147,7 @@ def test_cmd_status_text_format(capsys):
 
 
 def test_cmd_status_json_format(capsys):
+    """``cmd_status`` with the JSON format prints the status as a JSON object."""
     exit_code = cmd_status(argparse.Namespace(format="json"))
 
     assert exit_code == 0

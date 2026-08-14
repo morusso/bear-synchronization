@@ -8,6 +8,7 @@ from bear_sync.cli import BearSyncCLI
 
 
 def test_version_flag_exits_zero(capsys):
+    """``--version`` exits with code 0 and prints the program name."""
     cli = BearSyncCLI()
 
     with pytest.raises(SystemExit) as exc_info:
@@ -18,6 +19,7 @@ def test_version_flag_exits_zero(capsys):
 
 
 def test_missing_required_command_exits_nonzero():
+    """Running without a subcommand exits with a non-zero code."""
     cli = BearSyncCLI()
 
     with pytest.raises(SystemExit):
@@ -25,6 +27,7 @@ def test_missing_required_command_exits_nonzero():
 
 
 def test_sync_rejects_source_with_wrong_suffix(tmp_path, capsys):
+    """``sync`` rejects a ``--source`` argument that lacks the ``.bear2bk`` suffix."""
     bad_source = tmp_path / "source.zip"
     bad_source.write_text("")
     dest = tmp_path / "dest.bear2bk"
@@ -39,6 +42,7 @@ def test_sync_rejects_source_with_wrong_suffix(tmp_path, capsys):
 
 
 def test_sync_end_to_end_returns_zero(make_archive):
+    """A full ``sync`` run over already-matching archives returns exit code 0."""
     source = make_archive("source", {"Note.md": "hello"})
     dest = make_archive("dest", {"Note.md": "hello"})
 
@@ -48,6 +52,7 @@ def test_sync_end_to_end_returns_zero(make_archive):
 
 
 def test_sync_show_diff_flag_prints_titles(make_archive, capsys):
+    """``sync --show-diff`` prints the titles of notes unique to each archive."""
     source = make_archive("source", {"OnlySource.md": "a"})
     dest = make_archive("dest", {"OnlyDest.md": "b"})
 
@@ -63,6 +68,7 @@ def test_sync_show_diff_flag_prints_titles(make_archive, capsys):
 
 
 def test_sync_extraction_failure_is_caught_and_returns_one(tmp_path):
+    """A corrupted archive is caught by ``run`` and reported as exit code 1."""
     corrupt_source = tmp_path / "source.bear2bk"
     corrupt_source.write_text("not a zip")
     dest = tmp_path / "dest.bear2bk"
@@ -76,6 +82,7 @@ def test_sync_extraction_failure_is_caught_and_returns_one(tmp_path):
 
 
 def test_status_json_output(capsys):
+    """``status --format json`` prints the status as a JSON object."""
     cli = BearSyncCLI()
     exit_code = cli.run(["status", "--format", "json"])
 

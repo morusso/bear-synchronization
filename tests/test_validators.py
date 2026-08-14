@@ -8,6 +8,7 @@ from bear_sync.validators import existing_bear2bk_archive, existing_path, positi
 
 
 def test_existing_path_returns_path_for_existing_file(tmp_path):
+    """``existing_path`` returns the path unchanged when the file exists."""
     file = tmp_path / "file.txt"
     file.write_text("x")
 
@@ -15,11 +16,13 @@ def test_existing_path_returns_path_for_existing_file(tmp_path):
 
 
 def test_existing_path_raises_for_missing_path(tmp_path):
+    """``existing_path`` raises ``ArgumentTypeError`` for a path that does not exist."""
     with pytest.raises(argparse.ArgumentTypeError):
         existing_path(str(tmp_path / "missing.txt"))
 
 
 def test_existing_bear2bk_archive_accepts_existing_bear2bk_file(tmp_path):
+    """``existing_bear2bk_archive`` accepts a file with the ``.bear2bk`` suffix."""
     file = tmp_path / "backup.bear2bk"
     file.write_text("")
 
@@ -27,6 +30,7 @@ def test_existing_bear2bk_archive_accepts_existing_bear2bk_file(tmp_path):
 
 
 def test_existing_bear2bk_archive_rejects_wrong_suffix(tmp_path):
+    """``existing_bear2bk_archive`` rejects a file with the wrong suffix."""
     file = tmp_path / "backup.zip"
     file.write_text("")
 
@@ -35,16 +39,19 @@ def test_existing_bear2bk_archive_rejects_wrong_suffix(tmp_path):
 
 
 def test_existing_bear2bk_archive_rejects_missing_file(tmp_path):
+    """``existing_bear2bk_archive`` rejects a path that does not exist."""
     with pytest.raises(argparse.ArgumentTypeError, match="does not exist"):
         existing_bear2bk_archive(str(tmp_path / "missing.bear2bk"))
 
 
 @pytest.mark.parametrize("value", ["1", "42", "1000"])
 def test_positive_int_accepts_positive_values(value):
+    """``positive_int`` parses positive integer strings into ints."""
     assert positive_int(value) == int(value)
 
 
 @pytest.mark.parametrize("value", ["0", "-1", "abc"])
 def test_positive_int_rejects_non_positive_or_non_numeric(value):
+    """``positive_int`` rejects zero, negative, and non-numeric values."""
     with pytest.raises(argparse.ArgumentTypeError):
         positive_int(value)

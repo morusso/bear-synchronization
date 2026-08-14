@@ -5,6 +5,15 @@ from pathlib import Path
 
 
 def configure_logging(verbose: int, quiet: bool, log_file: Path | None) -> None:
+    """Configures the root logger's level, format, and handlers.
+
+    Args:
+        verbose: Verbosity count from repeated ``-v`` flags. ``1`` enables
+            INFO, ``2`` or more enables DEBUG.
+        quiet: If ``True``, restricts logging to ERROR and above,
+            overriding ``verbose``.
+        log_file: Optional path to also write logs to, in addition to stderr.
+    """
     if quiet:
         level = logging.ERROR
     elif verbose >= 2:

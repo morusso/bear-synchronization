@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import zipfile
-
 import pytest
-
 from bear_sync.backup import BearBackupArchive
 
 
 def test_extract_creates_destination_and_writes_files(tmp_path, make_archive):
+    """Extracting an archive creates the destination and writes its files."""
     archive = make_archive("backup", {"Note.md": "hello"})
     dest = tmp_path / "out"
 
@@ -18,11 +17,13 @@ def test_extract_creates_destination_and_writes_files(tmp_path, make_archive):
 
 
 def test_extract_missing_archive_raises(tmp_path):
+    """Extracting a non-existent archive raises ``FileNotFoundError``."""
     with pytest.raises(FileNotFoundError):
         BearBackupArchive.extract(tmp_path / "missing.bear2bk", tmp_path / "out")
 
 
 def test_extract_wrong_suffix_raises(tmp_path):
+    """Extracting an archive with the wrong file suffix raises ``ValueError``."""
     bad = tmp_path / "backup.zip"
     with zipfile.ZipFile(bad, "w") as zf:
         zf.writestr("Note.md", "hello")
@@ -32,6 +33,7 @@ def test_extract_wrong_suffix_raises(tmp_path):
 
 
 def test_extract_invalid_zip_raises(tmp_path):
+    """Extracting a file that is not a valid zip archive raises ``ValueError``."""
     bad = tmp_path / "backup.bear2bk"
     bad.write_text("not a zip")
 
@@ -40,6 +42,7 @@ def test_extract_invalid_zip_raises(tmp_path):
 
 
 def test_extract_refuses_nonempty_destination_without_overwrite(tmp_path, make_archive):
+    """Extracting into a non-empty destination without ``overwrite`` raises."""
     archive = make_archive("backup", {"Note.md": "hello"})
     dest = tmp_path / "out"
     dest.mkdir()
@@ -50,6 +53,7 @@ def test_extract_refuses_nonempty_destination_without_overwrite(tmp_path, make_a
 
 
 def test_extract_overwrite_true_allows_nonempty_destination(tmp_path, make_archive):
+    """Extracting with ``overwrite=True`` allows a non-empty destination and preserves its files."""
     archive = make_archive("backup", {"Note.md": "hello"})
     dest = tmp_path / "out"
     dest.mkdir()
@@ -62,6 +66,7 @@ def test_extract_overwrite_true_allows_nonempty_destination(tmp_path, make_archi
 
 
 def test_extract_rejects_zip_slip(tmp_path):
+    """Extracting an archive with a path-traversal member raises ``ValueError``."""
     malicious = tmp_path / "backup.bear2bk"
     with zipfile.ZipFile(malicious, "w") as zf:
         zf.writestr("../../evil.txt", "pwned")
@@ -71,6 +76,7 @@ def test_extract_rejects_zip_slip(tmp_path):
 
 
 def test_backup_creates_bak_copy_alongside_original(tmp_path, make_archive):
+    """Backing up an archive creates a byte-identical sibling ``.bak`` file."""
     archive = make_archive("backup", {"Note.md": "hello"})
 
     backup_path = BearBackupArchive.backup(archive)
@@ -80,6 +86,7 @@ def test_backup_creates_bak_copy_alongside_original(tmp_path, make_archive):
 
 
 def test_repack_rewrites_archive_from_directory_contents(tmp_path, make_archive):
+    """Repacking rewrites the archive so it reflects the source directory's current contents."""
     archive = make_archive("backup", {"Old.md": "stale"})
     source_dir = tmp_path / "extracted"
     (source_dir / "New.md").parent.mkdir(parents=True, exist_ok=True)
