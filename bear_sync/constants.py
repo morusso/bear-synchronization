@@ -1,3 +1,4 @@
 PROG_NAME = "bear-sync"
 VERSION = "0.1.0"
 ENV_PREFIX = "BEARSYNC_"
+BEAR_ARCHIVE_SUFFIX = ".bear2bk"
