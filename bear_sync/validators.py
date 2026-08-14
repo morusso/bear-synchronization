@@ -26,12 +26,6 @@ def existing_bear2bk_archive(value: str) -> Path:
     return path
 
 
-def bear2bk_archive(value: str) -> Path:
-    path = Path(value).expanduser()
-    _bear2bk_suffix(path, value)
-    return path
-
-
 def positive_int(value: str) -> int:
     try:
         parsed = int(value)

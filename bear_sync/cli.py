@@ -9,7 +9,7 @@ from .commands import cmd_status, cmd_sync
 from .constants import ENV_PREFIX, PROG_NAME, VERSION
 from .formatting import ColorHelpFormatter
 from .logging_setup import configure_logging
-from .validators import bear2bk_archive, existing_bear2bk_archive, existing_path, positive_int
+from .validators import existing_bear2bk_archive, existing_path, positive_int
 
 
 class BearSyncCLI:
@@ -90,7 +90,7 @@ class BearSyncCLI:
             help="source .bear2bk archive",
         )
         sync.add_argument(
-            "--dest", type=bear2bk_archive, required=True,
+            "--dest", type=existing_bear2bk_archive, required=True,
             help="destination .bear2bk archive",
         )
         sync.add_argument(
