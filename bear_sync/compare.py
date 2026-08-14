@@ -5,20 +5,23 @@ from pathlib import Path
 from .models import ArchiveComparison
 
 
-def note_titles(root: Path) -> set[str]:
-    """Collect note titles from an extracted .bear2bk backup directory.
+def list_notes(root: Path) -> dict[str, Path]:
+    """Map note title -> its top-level path in an extracted .bear2bk backup.
 
     Notes with attachments are exported as ``<title>.textbundle`` directories;
     plain notes are exported as standalone ``<title>.md`` files.
     """
-    titles: set[str] = set()
-    for bundle in root.rglob("*.textbundle"):
-        titles.add(bundle.stem)
-    for note in root.rglob("*.md"):
-        if any(parent.suffix == ".textbundle" for parent in note.parents):
-            continue
-        titles.add(note.stem)
-    return titles
+    notes: dict[str, Path] = {}
+    for entry in root.iterdir():
+        if entry.is_dir() and entry.suffix == ".textbundle":
+            notes[entry.stem] = entry
+        elif entry.is_file() and entry.suffix == ".md":
+            notes[entry.stem] = entry
+    return notes
+
+
+def note_titles(root: Path) -> set[str]:
+    return set(list_notes(root))
 
 
 def compare_archives(source_root: Path, dest_root: Path) -> ArchiveComparison:

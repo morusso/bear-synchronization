@@ -19,3 +19,9 @@ class ArchiveComparison:
     common: set[str]
     only_in_source: set[str]
     only_in_dest: set[str]
+
+
+@dataclass
+class MergeResult:
+    added_to_source: set[str]
+    added_to_dest: set[str]

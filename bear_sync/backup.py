@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 import zipfile
 from pathlib import Path
 
@@ -18,6 +19,25 @@ class BearBackupArchive:
     def extract(cls, archive_path: Path | str, destination: Path | str, *, overwrite: bool = False) -> Path:
         archive = cls(Path(archive_path))
         return archive._extract_to(Path(destination), overwrite=overwrite)
+
+    @classmethod
+    def backup(cls, archive_path: Path | str) -> Path:
+        """Copy ``archive_path`` to a sibling ``.bak`` file and return its path."""
+        archive_path = Path(archive_path)
+        backup_path = archive_path.with_name(archive_path.name + ".bak")
+        shutil.copy2(archive_path, backup_path)
+        return backup_path
+
+    @classmethod
+    def repack(cls, source_dir: Path | str, archive_path: Path | str) -> Path:
+        """Rewrite ``archive_path`` from the contents of ``source_dir``."""
+        source_dir = Path(source_dir)
+        archive_path = Path(archive_path)
+        with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as archive:
+            for path in sorted(source_dir.rglob("*")):
+                if path.is_file():
+                    archive.write(path, path.relative_to(source_dir))
+        return archive_path
 
     def _extract_to(self, destination: Path, *, overwrite: bool) -> Path:
         self._validate_archive()

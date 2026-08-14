@@ -8,6 +8,7 @@ from pathlib import Path
 from .backup import BearBackupArchive
 from .compare import compare_archives
 from .constants import PROG_NAME
+from .merge import fill_missing_notes
 from .models import ArchiveComparison, SyncArgs
 
 logger = logging.getLogger(PROG_NAME)
@@ -27,15 +28,41 @@ def cmd_sync(args: argparse.Namespace) -> int:
         dest_root = BearBackupArchive.extract(payload.dest, Path(dest_tmp))
         comparison = compare_archives(source_root, dest_root)
 
-    logger.info("notes in both archives: %d", len(comparison.common))
-    logger.info("notes only in source: %d", len(comparison.only_in_source))
-    logger.info("notes only in dest: %d", len(comparison.only_in_dest))
-    logger.debug("common: %s", sorted(comparison.common))
-    logger.debug("only in source: %s", sorted(comparison.only_in_source))
-    logger.debug("only in dest: %s", sorted(comparison.only_in_dest))
+        logger.info("notes in both archives: %d", len(comparison.common))
+        logger.info("notes only in source: %d", len(comparison.only_in_source))
+        logger.info("notes only in dest: %d", len(comparison.only_in_dest))
+        logger.debug("common: %s", sorted(comparison.common))
+        logger.debug("only in source: %s", sorted(comparison.only_in_source))
+        logger.debug("only in dest: %s", sorted(comparison.only_in_dest))
 
-    if payload.show_diff:
-        _print_diff(comparison)
+        if payload.show_diff:
+            _print_diff(comparison)
+
+        merge_result = fill_missing_notes(
+            source_root, dest_root, comparison,
+            include=payload.include, dry_run=payload.dry_run,
+        )
+
+        if not merge_result.added_to_source and not merge_result.added_to_dest:
+            logger.info("archives already in sync, nothing to fill in")
+            return 0
+
+        if payload.dry_run:
+            logger.info(
+                "dry-run: would add %d note(s) to dest, %d note(s) to source",
+                len(merge_result.added_to_dest), len(merge_result.added_to_source),
+            )
+            return 0
+
+        if merge_result.added_to_dest:
+            BearBackupArchive.backup(payload.dest)
+            BearBackupArchive.repack(dest_root, payload.dest)
+            logger.info("updated %s (+%d note(s))", payload.dest, len(merge_result.added_to_dest))
+
+        if merge_result.added_to_source:
+            BearBackupArchive.backup(payload.source)
+            BearBackupArchive.repack(source_root, payload.source)
+            logger.info("updated %s (+%d note(s))", payload.source, len(merge_result.added_to_source))
 
     return 0
 
