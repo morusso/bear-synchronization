@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from bear_sync.compare import compare_archives, note_titles
+from bear_sync.compare import compare_archives, list_notes, note_titles, notes_container
 
 
 def _touch(path: Path) -> None:
@@ -35,6 +35,29 @@ def test_compare_archives_reports_common_and_unique_notes(tmp_path):
     _touch(source / "Only Source.md")
     _touch(dest / "Shared.md")
     _touch(dest / "Only Dest.md")
+
+    result = compare_archives(source, dest)
+
+    assert result.common == {"Shared"}
+    assert result.only_in_source == {"Only Source"}
+    assert result.only_in_dest == {"Only Dest"}
+
+
+def test_notes_container_descends_through_export_wrapper_folder(tmp_path):
+    wrapper = tmp_path / "Bear Notes 2026-08-15 at 00.36.bear2bk"
+    _touch(wrapper / "Some Note.textbundle" / "text.md")
+
+    assert notes_container(tmp_path) == wrapper
+    assert list_notes(tmp_path) == {"Some Note": wrapper / "Some Note.textbundle"}
+
+
+def test_compare_archives_handles_differently_named_wrapper_folders(tmp_path):
+    source = tmp_path / "source"
+    dest = tmp_path / "dest"
+    _touch(source / "Bear Notes 2026-08-15 at 00.36.bear2bk" / "Shared.textbundle" / "text.md")
+    _touch(source / "Bear Notes 2026-08-15 at 00.36.bear2bk" / "Only Source.textbundle" / "text.md")
+    _touch(dest / "Bear Notes 2026-01-01 at 09.00.bear2bk" / "Shared.textbundle" / "text.md")
+    _touch(dest / "Bear Notes 2026-01-01 at 09.00.bear2bk" / "Only Dest.textbundle" / "text.md")
 
     result = compare_archives(source, dest)
 

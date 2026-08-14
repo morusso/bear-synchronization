@@ -5,7 +5,7 @@ import logging
 import shutil
 from pathlib import Path
 
-from .compare import list_notes
+from .compare import list_notes, notes_container
 from .constants import PROG_NAME
 from .models import ArchiveComparison, MergeResult
 
@@ -42,6 +42,8 @@ def fill_missing_notes(
     include = include or []
     source_notes = list_notes(source_root)
     dest_notes = list_notes(dest_root)
+    source_container = notes_container(source_root)
+    dest_container = notes_container(dest_root)
 
     to_dest = _matching(comparison.only_in_source, include)
     to_source = _matching(comparison.only_in_dest, include)
@@ -49,11 +51,11 @@ def fill_missing_notes(
     for title in sorted(to_dest):
         logger.info("copying note %r: source -> dest", title)
         if not dry_run:
-            _copy_note(source_notes[title], dest_root)
+            _copy_note(source_notes[title], dest_container)
 
     for title in sorted(to_source):
         logger.info("copying note %r: dest -> source", title)
         if not dry_run:
-            _copy_note(dest_notes[title], source_root)
+            _copy_note(dest_notes[title], source_container)
 
     return MergeResult(added_to_source=to_source, added_to_dest=to_dest)

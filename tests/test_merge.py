@@ -72,6 +72,20 @@ def test_fill_missing_notes_respects_include_filter(tmp_path):
     assert not (dest / "Skip This.md").exists()
 
 
+def test_fill_missing_notes_places_copies_inside_export_wrapper_folder(tmp_path):
+    source = tmp_path / "source"
+    dest = tmp_path / "dest"
+    _touch(source / "Bear Notes 2026-08-15 at 00.36.bear2bk" / "New Note.textbundle" / "text.md")
+    _touch(dest / "Bear Notes 2026-01-01 at 09.00.bear2bk" / "Existing.textbundle" / "text.md")
+    comparison = compare_archives(source, dest)
+
+    result = fill_missing_notes(source, dest, comparison)
+
+    assert result.added_to_dest == {"New Note"}
+    copied = dest / "Bear Notes 2026-01-01 at 09.00.bear2bk" / "New Note.textbundle" / "text.md"
+    assert copied.read_text() == "content"
+
+
 def test_fill_missing_notes_no_diff_is_a_noop(tmp_path):
     source = tmp_path / "source"
     dest = tmp_path / "dest"
