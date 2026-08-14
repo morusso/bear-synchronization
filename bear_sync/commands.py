@@ -8,13 +8,15 @@ from pathlib import Path
 from .backup import BearBackupArchive
 from .compare import compare_archives
 from .constants import PROG_NAME
-from .models import SyncArgs
+from .models import ArchiveComparison, SyncArgs
 
 logger = logging.getLogger(PROG_NAME)
 
 
 def cmd_sync(args: argparse.Namespace) -> int:
-    payload = SyncArgs(args.source, args.dest, args.workers, args.dry_run, args.include)
+    payload = SyncArgs(
+        args.source, args.dest, args.workers, args.dry_run, args.include, args.show_diff,
+    )
     logger.info("sync: %s -> %s (workers=%d, dry_run=%s)",
                 payload.source, payload.dest, payload.workers, payload.dry_run)
     if payload.include:
@@ -32,7 +34,20 @@ def cmd_sync(args: argparse.Namespace) -> int:
     logger.debug("only in source: %s", sorted(comparison.only_in_source))
     logger.debug("only in dest: %s", sorted(comparison.only_in_dest))
 
+    if payload.show_diff:
+        _print_diff(comparison)
+
     return 0
+
+
+def _print_diff(comparison: ArchiveComparison) -> None:
+    print(f"Only in source ({len(comparison.only_in_source)}):")
+    for title in sorted(comparison.only_in_source):
+        print(f"  - {title}")
+
+    print(f"Only in dest ({len(comparison.only_in_dest)}):")
+    for title in sorted(comparison.only_in_dest):
+        print(f"  - {title}")
 
 
 def cmd_status(args: argparse.Namespace) -> int:

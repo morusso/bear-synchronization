@@ -11,6 +11,7 @@ class SyncArgs:
     workers: int
     dry_run: bool
     include: list[str]
+    show_diff: bool
 
 
 @dataclass

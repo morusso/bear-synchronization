@@ -103,6 +103,10 @@ class BearSyncCLI:
             "--include", action="append", default=[], metavar="PATTERN",
             help="file pattern to include (can be given multiple times)",
         )
+        sync.add_argument(
+            "--show-diff", action="store_true",
+            help="list titles of notes that differ between source and dest",
+        )
         sync.set_defaults(func=cmd_sync)
 
     @staticmethod
