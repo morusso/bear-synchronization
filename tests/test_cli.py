@@ -44,8 +44,22 @@ def test_sync_end_to_end_returns_zero(make_archive):
 
     cli = BearSyncCLI()
     exit_code = cli.run(["sync", "--source", str(source), "--dest", str(dest)])
+    assert exit_code == 0
+
+
+def test_sync_show_diff_flag_prints_titles(make_archive, capsys):
+    source = make_archive("source", {"OnlySource.md": "a"})
+    dest = make_archive("dest", {"OnlyDest.md": "b"})
+
+    cli = BearSyncCLI()
+    exit_code = cli.run([
+        "sync", "--source", str(source), "--dest", str(dest), "--show-diff",
+    ])
 
     assert exit_code == 0
+    out = capsys.readouterr().out
+    assert "- OnlySource" in out
+    assert "- OnlyDest" in out
 
 
 def test_sync_extraction_failure_is_caught_and_returns_one(tmp_path):
